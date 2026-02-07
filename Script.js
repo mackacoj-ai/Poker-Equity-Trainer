@@ -1209,8 +1209,6 @@ function createSettingsPanel() {
       </div>
     </details>
   `;
-    
-  `;
   document.body.appendChild(panel);
 
   btn.addEventListener("click", () => { panel.style.display = panel.style.display === "none" ? "block" : "none"; });
@@ -1291,4 +1289,5 @@ resetStatsBtn.addEventListener("click", () => { clearSessionHistory(); });
   if (timerCountdownEl) timerCountdownEl.textContent = "No timer in Beginner Mode";
   createSettingsPanel();
 })();
+
 
