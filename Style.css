@@ -129,3 +129,39 @@ input[type="number"]{
 body.compact-auto .card{width:48px;height:72px}
 body.compact-auto .chip{font-size:.78rem}
 body.compact-auto .primary{padding:10px 14px}
+
+/* Help / How It Works section */
+.help-section {
+  background:#0f1728;
+  border:1px solid #2c3e50;
+  border-radius:10px;
+  padding:8px 10px;
+}
+.help-section > summary {
+  cursor:pointer;
+  font-weight:800;
+  color:#e2e8f0;
+  outline:none;
+}
+.help-body {
+  margin-top:8px;
+  color:#cbd5e1;
+  line-height:1.45;
+  font-size:.92rem;
+}
+.help-body h3 {
+  margin:10px 0 6px;
+  font-size:1rem;
+  color:#e5e7eb;
+}
+.help-body p, .help-body li {
+  color:#cbd5e1;
+}
+.help-body code {
+  background:#0b1222;
+  border:1px solid #20304a;
+  padding:1px 6px;
+  border-radius:6px;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size:.88rem;
+}
