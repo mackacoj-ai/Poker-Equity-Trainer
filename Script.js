@@ -1099,11 +1099,12 @@ function createSettingsPanel() {
   const panel = document.createElement("div");
   panel.id = "settingsPanel";
   panel.style.cssText = "position:fixed;right:20px;top:80px;z-index:9999;background:#1f2937;color:#ecf0f1;border:1px solid #374151;border-radius:8px;padding:12px;min-width:320px;display:none;box-shadow:0 8px 24px rgba(0,0,0,.35)";
-  panel.innerHTML = `
+ panel.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <div style="font-weight:600">Trainer Settings</div>
       <button id="closeSettings" class="btn">✕</button>
     </div>
+
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <label>Baseline opponents</label>
       <input type="number" id="set_playersBaseline" min="1" max="5" value="${SETTINGS.sim.playersBaseline}"/>
@@ -1150,6 +1151,65 @@ function createSettingsPanel() {
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
       <button id="applySettings" class="btn">Apply</button>
     </div>
+
+    <!-- ===== HELP / HOW IT WORKS (collapsible) ===== -->
+    <details class="help-section" style="margin-top:12px">
+      <summary>📘 How the Trainer Works</summary>
+      <div class="help-body">
+        <h3>What this tool is for</h3>
+        <p>The trainer helps you improve three skills: <strong>equity estimation</strong>, <strong>pot‑odds judgment</strong>, and <strong>decision making under time</strong>. It runs realistic Monte‑Carlo simulations to mimic real tables.</p>
+
+        <h3>How a hand works</h3>
+        <ol>
+          <li>See your <strong>hole cards</strong> and the <strong>board</strong>.</li>
+          <li>Check the <strong>pot</strong> and the <strong>amount to call</strong>.</li>
+          <li>Enter your <strong>win % estimate</strong>, <strong>pot‑odds %</strong>, and choose <strong>fold / call / raise</strong>.</li>
+          <li>Submit and get <strong>instant feedback</strong> for that street.</li>
+        </ol>
+
+        <h3>What the trainer shows (and why)</h3>
+        <ul>
+          <li><strong>Board badges</strong>: Paired, Connected, Semi‑Connected, 4‑Straight, Monotone, Two‑tone, Rainbow – fast board danger scan.</li>
+          <li><strong>Made hand</strong> + <strong>NUTS/Likely Nuts</strong>: see where your current hand stands.</li>
+          <li><strong>Outs</strong> (Strong vs Tentative): clean draws vs “dirty” ones (paired boards, monotone, very wet textures).</li>
+          <li><strong>Pot odds</strong>: uses <code>call / (pot + call)</code> with the live numbers.</li>
+          <li><strong>Feedback</strong>: equity error, pot‑odds error, decision quality, and common finishing hands.</li>
+        </ul>
+
+        <h3>Difficulty modes</h3>
+        <ul>
+          <li><strong>Beginner</strong>: No timer. Full hints always visible.</li>
+          <li><strong>Intermediate</strong>: Timer on. Concise hints (details in “More details”).</li>
+          <li><strong>Expert</strong>: Timer on. Hints hidden until after submit.</li>
+        </ul>
+
+        <h3>Realism under the hood</h3>
+        <ul>
+          <li><strong>Monte‑Carlo per street</strong> with stage‑specific trials.</li>
+          <li><strong>Continuation model</strong>: villains fold more when they miss; continue more when they connect.</li>
+          <li><strong>Pot accumulation</strong>: your calls roll into the next street; optional end on fold.</li>
+        </ul>
+
+        <h3>Mobile experience</h3>
+        <ul>
+          <li>Sticky chips for Stage, Pot, To‑Call, and Timer.</li>
+          <li>Bottom action bar: Submit / Next always reachable.</li>
+          <li>Thumb‑friendly steppers and segmented decision buttons.</li>
+        </ul>
+
+        <h3>Session tracking</h3>
+        <p>The app stores your average equity error, pot‑odds error, and decision accuracy. Use <strong>Reset Statistics</strong> anytime.</p>
+
+        <h3>Tips</h3>
+        <ul>
+          <li>Estimate equity first, then check price.</li>
+          <li>On wet boards, be cautious: some outs are “dirty”.</li>
+          <li>Use Intermediate timer for practical speed; try Expert for silent reps.</li>
+        </ul>
+      </div>
+    </details>
+  `;
+    
   `;
   document.body.appendChild(panel);
 
@@ -1231,3 +1291,4 @@ resetStatsBtn.addEventListener("click", () => { clearSessionHistory(); });
   if (timerCountdownEl) timerCountdownEl.textContent = "No timer in Beginner Mode";
   createSettingsPanel();
 })();
+
