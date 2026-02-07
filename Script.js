@@ -331,7 +331,39 @@ function isProbableNutsPreRiver(hole, board, samples=800) {
   return { abs:false, beaters, likely: beaters===0 };
 }
 
-// ====== Hints / Outs (ENHANCED) ======
+// ====== STRAIGHT DRAW DETECTION (fixed) ======
+/**
+ * Returns { openEnder, gutshot }
+ * - Open-ender = any 4 *consecutive* ranks r..r+3 present where r ∈ [2..10].
+ *                (This automatically excludes JQKA, which is 11..14 and only one-ended.)
+ * - Gutshot = any 5-window r..r+4 with exactly 4 present BUT not counted as OESD.
+ *             Also handles A-2-3-4 (needs 5) as a 4-out gutshot.
+ */
+function detectStraightDrawFromAllCards(allCards) {
+  const vals = new Set(allCards.map(c => RANK_TO_VAL[c.rank])); // 2..14 only here
+  const has = v => vals.has(v);
+
+  // --- Open-ender: look for 4 consecutive ranks starting 2..10
+  let openEnder = false;
+  for (let r = 2; r <= 10; r++) {
+    if (has(r) && has(r+1) && has(r+2) && has(r+3)) { openEnder = true; break; }
+  }
+  if (openEnder) return { openEnder:true, gutshot:false };
+
+  // --- Gutshot: any 5-window with exactly 4 ranks present (not OESD)
+  let gutshot = false;
+  for (let r = 2; r <= 10; r++) {
+    let count = 0;
+    for (let k = 0; k < 5; k++) if (has(r+k)) count++;
+    if (count === 4) { gutshot = true; break; }
+  }
+  // Special wheel: A-2-3-4 (needs 5)
+  if (!gutshot && has(14) && has(2) && has(3) && has(4) && !has(5)) gutshot = true;
+
+  return { openEnder:false, gutshot };
+}
+
+// ====== Hints / Outs (ENHANCED + Option B for OESD) ======
 function estimateOuts(hole, board) {
   const stage = STAGES[currentStageIndex];
   const texture = analyzeBoard(board, hole);
@@ -349,33 +381,36 @@ function estimateOuts(hole, board) {
   const flushSuit = Object.keys(suitCounts).find(s => suitCounts[s] === 4);
   if (flushSuit) {
     const flushOuts = 9;
-    if (texture.drawStrength !== "green") { tentative += flushOuts; outsDetail.push("Flush draw – 9 tentative outs (board danger)."); }
-    else { strong += flushOuts; outsDetail.push("Flush draw – 9 strong outs."); }
-  }
-
-  // Straight windows (OESD / Gutshot)
-  const RVAL = r => RANK_TO_VAL[r];
-  const rankVals = new Set(all.map(c => RVAL(c.rank)));
-  if (rankVals.has(14)) rankVals.add(1);
-  let openEnder = false; let gutshot = false;
-  for (let start = 1; start <= 10; start++) {
-    const w = [start,start+1,start+2,start+3,start+4];
-    const present = w.map(v => rankVals.has(v));
-    const cnt = present.filter(Boolean).length;
-    if (cnt >= 5) { openEnder = false; gutshot = false; break; }
-    if (cnt === 4) {
-      const miss = present.findIndex(p => !p);
-      if (miss === 0 || miss === 4) openEnder = true; else gutshot = true;
+    if (texture.mono) { // monotone board → conservative
+      tentative += flushOuts; outsDetail.push("Flush draw – 9 tentative outs (monotone board).");
+    } else if (texture.paired) {
+      strong += flushOuts; outsDetail.push("Flush draw – 9 strong outs. Note: paired board (boat/quads risk).");
+    } else {
+      strong += flushOuts; outsDetail.push("Flush draw – 9 strong outs.");
     }
   }
+
+  // Straight draws (fixed detection)
+  const { openEnder, gutshot } = detectStraightDrawFromAllCards(all);
+
   if (openEnder) {
     const outs = 8;
-    if (texture.drawStrength !== "green") { tentative += outs; outsDetail.push("Open‑ended straight draw – 8 tentative outs (board danger)."); }
-    else { strong += outs; outsDetail.push("Open‑ended straight draw – 8 strong outs."); }
+    if (texture.mono) {
+      tentative += outs; outsDetail.push("Open‑ended straight draw – 8 tentative outs (monotone board).");
+    } else if (texture.paired) {
+      strong += outs; outsDetail.push("Open‑ended straight draw – 8 strong outs. Note: paired board (some 'dirty' outs vs trips/boats).");
+    } else {
+      strong += outs; outsDetail.push("Open‑ended straight draw – 8 strong outs.");
+    }
   } else if (gutshot) {
     const outs = 4;
-    if (texture.drawStrength !== "green") { tentative += outs; outsDetail.push("Gutshot straight draw – 4 tentative outs (board danger)."); }
-    else { strong += outs; outsDetail.push("Gutshot straight draw – 4 strong outs."); }
+    if (texture.mono) {
+      tentative += outs; outsDetail.push("Gutshot straight draw – 4 tentative outs (monotone board).");
+    } else if (texture.paired) {
+      strong += outs; outsDetail.push("Gutshot straight draw – 4 strong outs. Note: paired board (dirty outs risk).");
+    } else {
+      strong += outs; outsDetail.push("Gutshot straight draw – 4 strong outs.");
+    }
   }
 
   // Pair logic & promotions
@@ -400,9 +435,11 @@ function estimateOuts(hole, board) {
 
     const trips = Math.max(0, 4 - holeCount - seenOnBoard);
     if (trips > 0) {
-      const danger = (texture.drawStrength !== "green");
-      if (danger) { tentative += trips; outsDetail.push(`Trips (${pairedRank}) – ${trips} tentative outs (board danger).`); }
-      else { strong += trips; outsDetail.push(`Trips (${pairedRank}) – ${trips} strong outs.`); }
+      if (texture.mono || texture.fourToStraight || texture.connected || texture.paired) {
+        tentative += trips; outsDetail.push(`Trips (${pairedRank}) – ${trips} tentative outs (board danger).`);
+      } else {
+        strong += trips; outsDetail.push(`Trips (${pairedRank}) – ${trips} strong outs.`);
+      }
     }
 
     if (!holePair) {
@@ -1160,11 +1197,21 @@ function createSettingsPanel() {
 // ====== Event wiring ======
 difficultySelect.addEventListener("change", () => {
   difficulty = difficultySelect.value;
+
+  // Always reset and restart timer behaviour on difficulty change
+  clearTimer();
   if (difficulty === "beginner") {
-    timerRange.disabled = true; clearTimer(); if (timerCountdownEl) timerCountdownEl.textContent = "No timer in Beginner Mode";
+    timerRange.disabled = true;
+    if (timerCountdownEl) timerCountdownEl.textContent = "No timer in Beginner Mode";
+    if (kpiTimerEl) kpiTimerEl.textContent = "Time: —";
   } else {
-    timerRange.disabled = false; timerSeconds = parseInt(timerRange.value, 10); timerValueEl.textContent = timerSeconds;
+    timerRange.disabled = false;
+    timerSeconds = parseInt(timerRange.value, 10) || 10;
+    timerValueEl.textContent = timerSeconds;
+    startTimer();             // <— ensure it runs immediately in Intermediate/Expert
   }
+
+  updatePotInfo();            // refresh KPI chips
   updateHintsImmediate();
 });
 timerRange.addEventListener("input", () => { timerSeconds = parseInt(timerRange.value, 10); timerValueEl.textContent = timerSeconds; });
