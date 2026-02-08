@@ -1152,62 +1152,122 @@ function createSettingsPanel() {
       <button id="applySettings" class="btn">Apply</button>
     </div>
 
-    <!-- ===== HELP / HOW IT WORKS (collapsible) ===== -->
-    <details class="help-section" style="margin-top:12px">
-      <summary>📘 How the Trainer Works</summary>
-      <div class="help-body">
-        <h3>What this tool is for</h3>
-        <p>The trainer helps you improve three skills: <strong>equity estimation</strong>, <strong>pot‑odds judgment</strong>, and <strong>decision making under time</strong>. It runs realistic Monte‑Carlo simulations to mimic real tables.</p>
+ <!-- ===== HELP / HOW IT WORKS (full guide) ===== -->
+<details class="help-section" open>
+  <summary>📘 How the Trainer Works (Full Guide)</summary>
+  <div class="help-body">
 
-        <h3>How a hand works</h3>
-        <ol>
-          <li>See your <strong>hole cards</strong> and the <strong>board</strong>.</li>
-          <li>Check the <strong>pot</strong> and the <strong>amount to call</strong>.</li>
-          <li>Enter your <strong>win % estimate</strong>, <strong>pot‑odds %</strong>, and choose <strong>fold / call / raise</strong>.</li>
-          <li>Submit and get <strong>instant feedback</strong> for that street.</li>
-        </ol>
+    <h2 id="purpose">What this tool is for</h2>
+    <p>The trainer improves three core skills:</p>
+    <ol>
+      <li><strong>Equity estimation</strong> — how often your hand is expected to win from this point forward.</li>
+      <li><strong>Pot‑odds judgment</strong> — whether calling is priced correctly based on pot and bet size.</li>
+      <li><strong>Decision‑making under time</strong> — choosing fold / call / raise quickly and confidently.</li>
+    </ol>
+    <p>It uses <strong>Monte‑Carlo simulation</strong> and a <strong>street‑by‑street continuation model</strong> to reflect realistic table dynamics rather than toy math.</p>
 
-        <h3>What the trainer shows (and why)</h3>
+    <hr/>
+
+    <h2 id="flow">How each hand works</h2>
+    <ol>
+      <li>See your <strong>hole cards</strong> and the current <strong>board</strong> (Preflop → Flop → Turn → River).</li>
+      <li>Check <strong>Pot</strong> and <strong>To Call</strong> (also shown as sticky chips at the top on mobile).</li>
+      <li>Enter:
         <ul>
-          <li><strong>Board badges</strong>: Paired, Connected, Semi‑Connected, 4‑Straight, Monotone, Two‑tone, Rainbow – fast board danger scan.</li>
-          <li><strong>Made hand</strong> + <strong>NUTS/Likely Nuts</strong>: see where your current hand stands.</li>
-          <li><strong>Outs</strong> (Strong vs Tentative): clean draws vs “dirty” ones (paired boards, monotone, very wet textures).</li>
-          <li><strong>Pot odds</strong>: uses <code>call / (pot + call)</code> with the live numbers.</li>
-          <li><strong>Feedback</strong>: equity error, pot‑odds error, decision quality, and common finishing hands.</li>
+          <li><strong>Win %</strong> (your best equity estimate now)</li>
+          <li><strong>Pot‑odds %</strong> (call / (pot + call))</li>
+          <li><strong>Decision</strong>: Fold / Call / Raise</li>
         </ul>
+      </li>
+      <li>Hit <strong>Submit</strong> to get instant feedback for that street, then move to the next street.</li>
+    </ol>
 
-        <h3>Difficulty modes</h3>
-        <ul>
-          <li><strong>Beginner</strong>: No timer. Full hints always visible.</li>
-          <li><strong>Intermediate</strong>: Timer on. Concise hints (details in “More details”).</li>
-          <li><strong>Expert</strong>: Timer on. Hints hidden until after submit.</li>
-        </ul>
+    <hr/>
 
-        <h3>Realism under the hood</h3>
-        <ul>
-          <li><strong>Monte‑Carlo per street</strong> with stage‑specific trials.</li>
-          <li><strong>Continuation model</strong>: villains fold more when they miss; continue more when they connect.</li>
-          <li><strong>Pot accumulation</strong>: your calls roll into the next street; optional end on fold.</li>
-        </ul>
+    <h2 id="what-you-see">What the trainer shows (and why)</h2>
 
-        <h3>Mobile experience</h3>
-        <ul>
-          <li>Sticky chips for Stage, Pot, To‑Call, and Timer.</li>
-          <li>Bottom action bar: Submit / Next always reachable.</li>
-          <li>Thumb‑friendly steppers and segmented decision buttons.</li>
-        </ul>
+    <h3>1) Board overview (badges)</h3>
+    <p>Coloured chips summarise board texture at a glance:</p>
+    <ul>
+      <li><strong>Paired</strong> — board has a pair → boats/quads possible.</li>
+      <li><strong>Connected / Semi‑Connected</strong> — straight chances are present.</li>
+      <li><strong>4‑Straight</strong> — four in a row on board (high straight risk).</li>
+      <li><strong>Monotone</strong> — three cards of the same suit (flush possible).</li>
+      <li><strong>Two‑tone</strong> — two suits featured (flush draws possible).</li>
+      <li><strong>Rainbow</strong> — safer flop texture (all three suits).</li>
+    </ul>
 
-        <h3>Session tracking</h3>
-        <p>The app stores your average equity error, pot‑odds error, and decision accuracy. Use <strong>Reset Statistics</strong> anytime.</p>
+    <h3>2) Your made hand + NUTS detection</h3>
+    <p>The trainer evaluates your best 5‑card hand (e.g., Pair, Two Pair, Trips, Straight, Flush, Full House, Quads, Straight Flush). It also flags:</p>
+    <ul>
+      <li><strong>NUTS</strong> — no hand can beat you (river: exact check).</li>
+      <li><strong>Likely Nuts</strong> — sampled villains rarely beat you (flop/turn: fast sampler).</li>
+    </ul>
 
-        <h3>Tips</h3>
-        <ul>
-          <li>Estimate equity first, then check price.</li>
-          <li>On wet boards, be cautious: some outs are “dirty”.</li>
-          <li>Use Intermediate timer for practical speed; try Expert for silent reps.</li>
-        </ul>
-      </div>
-    </details>
+    <h3>3) Outs (Strong vs Tentative) — with “dirty‑outs” awareness</h3>
+    <p>Outs are split into:</p>
+    <ul>
+      <li><strong>Strong</strong> — clean/improve reliably.</li>
+      <li><strong>Tentative</strong> — may be “dirty” due to board danger (paired boards → boats/quads; monotone → flush risk; very wet textures).</li>
+    </ul>
+    <p>Examples: OESD (8), Gutshot (4), Flush draw (9), Trips/Full‑house promotions on paired boards, Two‑pair via kicker, etc.</p>
+    <p><em>Balanced rule (current):</em> OESD is <strong>Strong</strong> unless the board is <strong>Monotone</strong>. If the board is <strong>Paired but not monotone</strong>, OESD remains <strong>Strong</strong> but shows a “dirty outs” note.</p>
+
+    <h3>4) Pot odds</h3>
+    <p>We always compute pot odds as <code>call / (pot + call)</code> using the <em>pre‑call</em> pot shown. This keeps your equity/price comparisons consistent.</p>
+
+    <h3>5) Feedback after submit</h3>
+    <ul>
+      <li>Your estimate vs <strong>actual equity</strong> (from simulation).</li>
+      <li>Your estimate vs <strong>actual pot odds</strong>.</li>
+      <li><strong>Decision band</strong> (green/amber/red) based on equity vs price.</li>
+      <li>Common <strong>finishing hands</strong> for your holding.</li>
+    </ul>
+
+    <hr/>
+
+    <h2 id="realism">Why results feel realistic</h2>
+    <ul>
+      <li><strong>Monte‑Carlo per street</strong>: more trials on later streets (lower variance), adjustable in ⚙︎ Settings.</li>
+      <li><strong>Continuation model</strong>: villains fold more when they miss and continue when they “connect” (pairs/draws), so multi‑way flops often become heads‑up by river.</li>
+      <li><strong>Range‑aware continuation (optional)</strong>: increases survival probability on trials where a villain plausibly connects (kept modest for speed).</li>
+      <li><strong>True pot accumulation</strong>: your calls/raises roll into the pot → next bet sizes are more lifelike.</li>
+    </ul>
+
+    <hr/>
+
+    <h2 id="difficulty">Difficulty modes</h2>
+    <ul>
+      <li><strong>Beginner</strong> — No timer; full hints visible.</li>
+      <li><strong>Intermediate</strong> — Timer on; concise summary hints (details in a collapsible section).</li>
+      <li><strong>Expert</strong> — Timer on; hints hidden until after submit.</li>
+    </ul>
+
+    <hr/>
+
+    <h2 id="mobile">Mobile experience</h2>
+    <ul>
+      <li>Sticky KPI chips for <strong>Stage</strong>, <strong>Pot</strong>, <strong>To‑Call</strong>, and <strong>Timer</strong>.</li>
+      <li>Sticky bottom action bar with <strong>Submit</strong> / <strong>Next</strong>.</li>
+      <li>Thumb‑friendly <strong>steppers</strong> (Win% & Pot‑odds) and <strong>segmented decision</strong> buttons.</li>
+    </ul>
+
+    <hr/>
+
+    <h2 id="session">Session tracking</h2>
+    <p>The app stores your average equity error, pot‑odds error, and decision accuracy. Use <strong>Reset Statistics</strong> anytime (footer).</p>
+
+    <hr/>
+
+    <h2 id="tips">Tips</h2>
+    <ul>
+      <li>Estimate <strong>equity first</strong>, then check the <strong>price</strong>.</li>
+      <li>On wet/paired boards, assume some outs are <strong>dirty</strong>.</li>
+      <li>Use <strong>Intermediate</strong> for time‑boxed practice; try <strong>Expert</strong> for silent reps.</li>
+    </ul>
+
+  </div>
+</details>
   `;
   document.body.appendChild(panel);
 
@@ -1289,5 +1349,6 @@ resetStatsBtn.addEventListener("click", () => { clearSessionHistory(); });
   if (timerCountdownEl) timerCountdownEl.textContent = "No timer in Beginner Mode";
   createSettingsPanel();
 })();
+
 
 
