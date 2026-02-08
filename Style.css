@@ -165,3 +165,27 @@ body.compact-auto .primary{padding:10px 14px}
   font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   font-size:.88rem;
 }
+
+/* Modal/backdrop for Settings */
+#settingsOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(2px);
+  z-index: 998;
+  display: none; /* shown when panel opens */
+}
+
+/* Make the Settings panel scrollable and tall enough on desktop */
+#settingsPanel {
+  max-height: 85vh;                 /* fits on small laptops too */
+  overflow: auto;                   /* scroll the panel content */
+  overscroll-behavior: contain;     /* prevent scroll chaining to page */
+  -webkit-overflow-scrolling: touch;/* smooth momentum on iOS */
+}
+
+/* While the panel is open, prevent page scroll behind it */
+body.no-scroll {
+  overflow: hidden;
+  touch-action: none;
+}
