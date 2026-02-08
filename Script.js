@@ -1266,8 +1266,69 @@ function createSettingsPanel() {
       <li>Use <strong>Intermediate</strong> for time‑boxed practice; try <strong>Expert</strong> for silent reps.</li>
     </ul>
 
+       <hr/>
+
+    <h2 id="baseline">Understanding Baseline Opponents & Street Continuation</h2>
+
+    <h3>1) What “Baseline Opponents” Means</h3>
+    <p><strong>Baseline Opponents</strong> tells the simulator how many villains to start with <em>before</em> any folding decisions happen.</p>
+    <ul>
+      <li>If <strong>Baseline Opponents = 4</strong> → <code>Hero + 4 Villains = 5‑handed</code></li>
+      <li>If <strong>Baseline Opponents = 5</strong> → <code>Hero + 5 Villains = full 6‑max</code></li>
+    </ul>
+    <p>This defines the <em>initial population</em>. Survivors then depend on the continuation settings.</p>
+
+    <h3>2) What “See Flop % / See Turn % / See River %” Do</h3>
+    <p>These control how often each simulated opponent <strong>continues</strong> to the next street (independently):</p>
+    <ul>
+      <li><strong>See Flop %</strong> — chance a villain who hasn’t folded yet reaches the flop.</li>
+      <li><strong>See Turn %</strong> — given they saw the flop, chance they continue to the turn.</li>
+      <li><strong>See River %</strong> — given they saw the turn, chance they reach the river.</li>
+    </ul>
+    <p>Defaults (65/55/45) typically yield multi‑way flops, 2–3‑way turns, and mostly heads‑up rivers.</p>
+
+    <h3>3) How Monte Carlo Simulation Uses These Together</h3>
+    <ol>
+      <li><strong>Start</strong> with Baseline Opponents (e.g., 5 for 6‑max).</li>
+      <li><strong>Flop survival</strong>: roll <em>See Flop %</em> for each villain.</li>
+      <li><strong>Turn survival</strong>: roll <em>See Turn %</em> for each remaining villain.</li>
+      <li><strong>River survival</strong>: roll <em>See River %</em>.</li>
+      <li><strong>Complete board, evaluate</strong> hero vs survivors → add to win/tie/lose → repeat thousands of times.</li>
+    </ol>
+
+    <h3>4) Best Setup for 6‑Max</h3>
+    <ul>
+      <li><strong>Set Baseline Opponents = 5</strong> (Hero + 5 = 6 players).</li>
+      <li><strong>Recommended for training</strong>: keep defaults <strong>65/55/45</strong> for richer, more diverse learning.</li>
+      <li><strong>More realism (optional)</strong>: ~<strong>30/20/13</strong> (but you’ll see fewer complex multi‑way spots).</li>
+    </ul>
+
+    <h3>5) Full Example (6‑Max, defaults)</h3>
+    <pre style="white-space:pre-wrap;margin:0">
+Start: You + Opp1 + Opp2 + Opp3 + Opp4 + Opp5
+Flop (65% each): Opp1 stay, Opp2 stay, Opp3 fold, Opp4 stay, Opp5 fold → 3‑way flop
+Turn (55% of 3): Opp1 stay, Opp2 fold, Opp4 stay → 2‑way turn
+River (45% of 2): Opp1 folds, Opp4 stays → heads‑up river
+→ Complete board, evaluate Hero vs Opp4, add to MC tally, repeat…
+    </pre>
+
+    <h3>6) Recommended Setup (simple answer)</h3>
+    <ul>
+      <li><strong>Baseline Opponents = 5</strong> for 6‑max.</li>
+      <li><strong>Keep 65/55/45</strong> for training density; use ~30/20/13 for strict realism only if you prefer.</li>
+    </ul>
+
+    <h3>7) Why these settings matter</h3>
+    <p>Different survivor counts change equities and decisions:</p>
+    <ul>
+      <li>More villains → lower raw equity, more texture reading, more dirty outs.</li>
+      <li>Fewer villains → clearer equities, more value/bluff math, simpler spots.</li>
+      <li>The trainer’s continuation model forces you to adapt street by street—just like real poker.</li>
+    </ul>
+
   </div>
 </details>
+
   `;
   document.body.appendChild(panel);
 
@@ -1349,6 +1410,7 @@ resetStatsBtn.addEventListener("click", () => { clearSessionHistory(); });
   if (timerCountdownEl) timerCountdownEl.textContent = "No timer in Beginner Mode";
   createSettingsPanel();
 })();
+
 
 
 
